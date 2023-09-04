@@ -1,0 +1,61 @@
+version: '3'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  solace:
+    image: $PUBSUB_IMAGE
+    hostname: $PUBSUB_HOSTNAME
+    networks:
+      - solace_msg_net
+    env_file:
+      - ./solace_config_keys.env
+    ports:
+      - '8008:8008'
+      - '5671:5671'
+      - '5672:5672'
+      - "${PUBSUB_PORT_NUMBER}:55555"
+      - '8080:8080'
+      - '5550:5550'
+      - '1943:1943'
+      - '55556:55556'
+      - '55443:55443'
+      - '55445:55445'
+      - '2222:2222'
+    shm_size: 2g
+    ulimits:
+      memlock: -1
+      nofile:
+        soft: 2448
+        hard: 42192
+
+  app:
+    build: .
+    depends_on:
+      - kafka
+      - solace
+
+networks:
+  solace_msg_net:
+    name: solace_msg_net
+    external: false
+    driver: bridge
