@@ -16,8 +16,8 @@ public class ConsumerApp {
 
         String kafkaTopic = "kafkatest";
         String solaceTopic = "solacetest";
-        String kafkaBootstrapServers = "tcp://192.168.1.9:9092";
-        String solaceHost = "tcp://192.168.1.9:55557";
+        String kafkaBootstrapServers = "tcp://kafka-ps:9092";
+        String solaceHost = "tcp://solace-ps:55557";
         String solaceVPN = "default";
         String solaceUsername = "admin";
         String solacePassword = "admin";

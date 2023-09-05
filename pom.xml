@@ -47,8 +47,8 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.32</version> <!-- Use the latest version available -->
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.36</version> <!-- Use the latest version available -->
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -62,11 +62,12 @@
         </dependency>
     </dependencies>
     <build>
+        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.2.2</version>
                 <configuration>
                     <archive>
                         <manifest>
