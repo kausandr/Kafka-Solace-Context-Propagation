@@ -2,14 +2,24 @@ version: '3'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    networks:
+      - solace_msg_net
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 22181:2181
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   kafka:
+    container_name: kafka-ps
     image: confluentinc/cp-kafka:latest
+    networks:
+      - solace_msg_net
     depends_on:
       - zookeeper
     ports:
@@ -21,10 +31,16 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "29092" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   solace:
+    container_name: solace-ps
     image: $PUBSUB_IMAGE
-    hostname: $PUBSUB_HOSTNAME
+#    hostname: $PUBSUB_HOSTNAME
     networks:
       - solace_msg_net
     env_file:
@@ -47,15 +63,27 @@ services:
       nofile:
         soft: 2448
         hard: 42192
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "55555" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   app:
     build: .
+    networks:
+      - solace_msg_net
     depends_on:
       - kafka
       - solace
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "kafka", "29092" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   solace_msg_net:
-    name: solace_msg_net
-    external: false
-    driver: bridge
+#    name: solace_msg_net
+#    external: false
+#    driver: bridge
