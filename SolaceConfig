@@ -1,0 +1,33 @@
+1. **Access Solace Admin Console**:
+   - Open the Solace Admin Console, which provides a web-based interface for configuring Solace routers.
+
+2. **Create a Queue**:
+   - In the Admin Console, navigate to the VPN where you want to create the queue.
+   - Click on "Queues" in the navigation menu.
+   - Click the "Add" or "Create" button to create a new queue.
+
+3. **Configure Queue Properties**:
+   - Give your queue a unique name, e.g., "SolaceToKafkaQueue."
+   - Set any other required properties, such as queue size limits, permissions, and access controls.
+
+4. **Define Message VPN Configuration**:
+   - Navigate to the Message VPN configuration section.
+   - Ensure that the Message VPN is correctly configured to allow the queue to connect and exchange messages.
+
+5. **Configure Queue Subscription**:
+   - In the queue configuration, set up a subscription rule that specifies which Solace topics this queue will subscribe to. You should specify the Solace topic from which messages will be bridged to Kafka. For example, if you want to bridge messages from "solacetest," configure a subscription to this topic.
+
+6. **Configure Kafka Bridge Settings**:
+   - To bridge messages to Kafka, you need to configure the queue's Kafka Bridge settings. These settings will specify how messages should be forwarded to Kafka.
+   - You will need to provide the Kafka server details (bootstrap servers) and topic to which messages should be forwarded.
+
+7. **Set Message Transformation Rules (Optional)**:
+   - Depending on your use case, you may need to apply message transformation rules. For example, you might need to convert Solace message formats to match the expected format in Kafka.
+
+8. **Save and Activate**:
+   - After configuring the queue, save your changes.
+   - Activate the changes to apply the configuration.
+
+9. **Testing**:
+   - Publish a message to the Solace topic that matches your queue's subscription.
+   - The Solace Queue, with Kafka Bridge configuration, should forward this message to the specified Kafka topic.
