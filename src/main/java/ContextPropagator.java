@@ -10,6 +10,6 @@ public class ContextPropagator {
         String context = "Kafka-Solace-Context: Propagated";
         logger.debug("Adding context: {}", context);
         String messageWithContext = context + "\n" + message;
-        return context + "\n" + message;
+        return messageWithContext;
     }
 }
