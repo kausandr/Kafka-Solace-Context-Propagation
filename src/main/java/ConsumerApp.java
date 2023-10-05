@@ -5,6 +5,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.TracerBuilder;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Scope;
@@ -69,10 +70,11 @@ public class ConsumerApp {
                 .build();
 
         //Create an OpenTelemetry instance
-        io.opentelemetry.api.OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
+        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
                 .setTracerProvider(tracerProvider)
                 .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                 .build();
+
         //Set the global OpenTelemetry instance
         GlobalOpenTelemetry.set(openTelemetry);
 
@@ -100,7 +102,10 @@ public class ConsumerApp {
                     String kafkaMessage = record.value();
 
                     //Create a span for Kafka processing
-                    Span kafkaSpan = tracer.spanBuilder("Kafka Processing").startSpan();
+                    Span kafkaSpan = tracer.spanBuilder("Kafka Processing")
+                            .setSpanKind(SpanKind.CONSUMER)
+                            .setAttribute("service.name", "KafkaConsumerService")
+                            .startSpan();
                     try (Scope scope = kafkaSpan.makeCurrent()){
                         //Add attributes to the Kafka span
                         kafkaSpan.setAttribute("kafkatest",kafkaTopic);
@@ -109,7 +114,10 @@ public class ConsumerApp {
                         String solaceMessage = ContextPropagator.addContext(kafkaMessage);
 
                         //Create a span for Solace processing
-                        Span solaceSpan = tracer.spanBuilder("Solace Processing").startSpan();
+                        Span solaceSpan = tracer.spanBuilder("Solace Processing")
+                                .setSpanKind(SpanKind.CONSUMER)
+                                .setAttribute("service.name", "SolaceProducerService")
+                                .startSpan();
                         try (Scope solaceScope = solaceSpan.makeCurrent()) {
                             //Add attributes to the Solace span
                             solaceSpan.setAttribute("solacetest", solaceTopic);
