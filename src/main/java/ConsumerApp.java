@@ -1,18 +1,6 @@
 
 import com.solacesystems.jcsmp.*;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
-import io.opentelemetry.context.Scope;
-import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -22,12 +10,6 @@ import java.time.Duration;
 import java.util.*;
 
 public class ConsumerApp {
-    private static Tracer tracer;
-
-    public ConsumerApp(OpenTelemetry openTelemetry){
-        tracer = openTelemetry.getTracer("io.opentelemetry.example.JaegerExample");
-    }
-
     public static void main(String[] args) {
 
         final Logger logger = LoggerFactory.getLogger(ConsumerApp.class);
@@ -37,7 +19,7 @@ public class ConsumerApp {
         String kafkaBootstrapServers = "tcp://kafka-ps:9092";
         String solaceHost = "tcp://solace-ps:55555";
         String solaceVPN = "default";
-        String solaceUsername = "admin";
+        String solaceUsername = "admin";  //username and password for solace UI dashboard
         String solacePassword = "admin";
 
         //setting up kafka consumer properties
@@ -47,7 +29,8 @@ public class ConsumerApp {
         kafkaProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         kafkaProps.put(ConsumerConfig.GROUP_ID_CONFIG, "group1");
 
-        KafkaConsumer<String,String> kafkaConsumer = new KafkaConsumer<>(kafkaProps);
+        //setting up kafka consumer to consume messages
+        KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(kafkaProps);
         kafkaConsumer.subscribe(Collections.singletonList(kafkaTopic));
 
         //setting up solace context
@@ -56,25 +39,6 @@ public class ConsumerApp {
         solaceProps.setProperty(JCSMPProperties.VPN_NAME, solaceVPN);
         solaceProps.setProperty(JCSMPProperties.USERNAME, solaceUsername);
         solaceProps.setProperty(JCSMPProperties.PASSWORD, solacePassword);
-
-        //Initialize the Jaeger exporter
-        JaegerGrpcSpanExporter jaegerExporter = JaegerGrpcSpanExporter.builder()
-                .setEndpoint("http://jaeger-collector:14268/api/traces")
-                .build();
-
-        //Create an OpenTelemetry Tracer
-        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(BatchSpanProcessor.builder(jaegerExporter).build())
-                .build();
-
-        //Create an OpenTelemetry instance
-        io.opentelemetry.api.OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
-                .setTracerProvider(tracerProvider)
-                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
-                .build();
-
-        //Set the global OpenTelemetry instance
-        GlobalOpenTelemetry.set(openTelemetry);
 
         XMLMessageProducer solaceProducer = null;
         try {
@@ -99,37 +63,13 @@ public class ConsumerApp {
                     // Extract Kafka message
                     String kafkaMessage = record.value();
 
-                    //Create a span for Kafka processing
-                    Span kafkaSpan = tracer.spanBuilder("Kafka Processing")
-                            .setSpanKind(SpanKind.CONSUMER)
-                            .setAttribute("service.name", "KafkaConsumerService")
-                            .startSpan();
-                    try (Scope scope = kafkaSpan.makeCurrent()){
-                        //Add attributes to the Kafka span
-                        kafkaSpan.setAttribute("kafkatest",kafkaTopic);
+                    //Add context information
+                    String solaceMessage = ContextPropagator.addContext(kafkaMessage);
 
-                        //Add context information
-                        String solaceMessage = ContextPropagator.addContext(kafkaMessage);
-
-                        //Create a span for Solace processing
-                        Span solaceSpan = tracer.spanBuilder("Solace Processing")
-                                .setSpanKind(SpanKind.CONSUMER)
-                                .setAttribute("service.name", "SolaceProducerService")
-                                .startSpan();
-                        try (Scope solaceScope = solaceSpan.makeCurrent()) {
-                            //Add attributes to the Solace span
-                            solaceSpan.setAttribute("solacetest", solaceTopic);
-
-                            //Publish to Solace
-                            TextMessage solaceTextMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-                            solaceTextMsg.setText(solaceMessage);
-                            solaceProducer.send(solaceTextMsg, JCSMPFactory.onlyInstance().createTopic(solaceTopic));
-                        } finally {
-                            solaceSpan.end();
-                        }
-                    }finally {
-                        kafkaSpan.end();
-                    }
+                    //Publish to Solace
+                    TextMessage solaceTextMsg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+                    solaceTextMsg.setText(solaceMessage);
+                    solaceProducer.send(solaceTextMsg, JCSMPFactory.onlyInstance().createTopic(solaceTopic));
                 }
             }
         } catch (Exception e) {

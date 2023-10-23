@@ -1,34 +1,39 @@
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
+import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ContextPropagator {
     private static final Logger logger = LoggerFactory.getLogger(ContextPropagator.class);
-    private static final Tracer tracer = GlobalOpenTelemetry.getTracer("KafkaSolaceIntegration");
     public static String addContext(String message) {
-        //Create a unique span for each message
-        Span span = tracer.spanBuilder("MessageProcessing").startSpan();
-        try{
-        // Add context information to the message
-        String context = "Kafka-Solace-Context: Propagated";
-        logger.debug("Adding context: {}", context);
-        String messageWithContext = context + "\n" + message;
+        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder()
+                .setEndpoint("http://localhost:16686/api/traces")
+                .build();
 
-        //Add attributes to the span
-            span.setAttribute("message", messageWithContext);
+        //Creating tracer
+        Tracer tracer = GlobalOpenTelemetry.getTracer("ContextPropagator");
 
-         //Simulate processing time (for demonstration purposes)
-         Thread.sleep(100);
+        //Start a span
+        Span span = tracer.spanBuilder("ContextPropagator")
+                .setSpanKind(SpanKind.INTERNAL)
+                .startSpan();
 
-        return messageWithContext;
-        } catch (InterruptedException e) {
-            logger.error("Error while processing message: {}", e.getMessage());
-            return message;
-        } finally {
-            //End span
-            span.end();
+        try(Scope scope = span.makeCurrent()) {
+            span.setAttribute("Message sent", "Kafka<->Solace");
+
+            // Add context information to the message
+            String context = "Kafka-Solace-Context: Propagated";
+            logger.debug("Adding context: {}", context);
+            String messageWithContext = context + "\n" + message;
+
+            return messageWithContext;
+        }finally {
+         span.end();
         }
     }
 }
