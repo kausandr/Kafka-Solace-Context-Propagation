@@ -10,20 +10,20 @@ import org.slf4j.LoggerFactory;
 public class ContextPropagator {
     private static final Logger logger = LoggerFactory.getLogger(ContextPropagator.class);
     public static String addContext(String message) {
-        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder()
-                .setEndpoint("http://localhost:16686/api/traces")
-                .build();
+//        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder()
+//                .setEndpoint("http://localhost:16686/api/traces")
+//                .build();
+//
+//        //Creating tracer
+//        Tracer tracer = GlobalOpenTelemetry.getTracer("ContextPropagator");
+//
+//        //Start a span
+//        Span span = tracer.spanBuilder("ContextPropagator")
+//                .setSpanKind(SpanKind.INTERNAL)
+//                .startSpan();
 
-        //Creating tracer
-        Tracer tracer = GlobalOpenTelemetry.getTracer("ContextPropagator");
-
-        //Start a span
-        Span span = tracer.spanBuilder("ContextPropagator")
-                .setSpanKind(SpanKind.INTERNAL)
-                .startSpan();
-
-        try(Scope scope = span.makeCurrent()) {
-            span.setAttribute("Message sent", "Kafka<->Solace");
+        //        try(Scope scope = span.makeCurrent()) {
+        //    span.setAttribute("Message sent", "Kafka<->Solace");
 
             // Add context information to the message
             String context = "Kafka-Solace-Context: Propagated";
@@ -31,8 +31,8 @@ public class ContextPropagator {
             String messageWithContext = context + "\n" + message;
 
             return messageWithContext;
-        }finally {
-         span.end();
-        }
+        //}finally {
+        // span.end();
+        //}
     }
 }

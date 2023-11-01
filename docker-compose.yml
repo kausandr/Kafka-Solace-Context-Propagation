@@ -2,6 +2,8 @@ version: '3'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    expose:
+      - "2181"
     networks:
       - solace_msg_net
     environment:
@@ -19,6 +21,8 @@ services:
   kafka:
     container_name: kafka-ps
     image: confluentinc/cp-kafka:latest
+    expose:
+      - "9092"
     networks:
       - solace_msg_net
     depends_on:
@@ -28,7 +32,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-ps:9092
       #,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -108,8 +112,28 @@ services:
       timeout: 10s
       retries: 3
 
-  app:
+  app-cons:
     build: .
+    entrypoint:
+      - sh
+      - -c
+      - |
+       java -cp /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar ConsumerApp
+    networks:
+      - solace_msg_net
+    depends_on:
+      kafka:
+        condition: service_healthy
+      solace:
+        condition: service_healthy
+
+  app-prod:
+    build: .
+    entrypoint:
+      - sh
+      - -c
+      - |
+       java -cp /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar KafkaProducerApp
     networks:
       - solace_msg_net
     depends_on:

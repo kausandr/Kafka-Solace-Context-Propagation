@@ -63,6 +63,9 @@ public class ConsumerApp {
                     // Extract Kafka message
                     String kafkaMessage = record.value();
 
+                    System.out.println("<<=== Consumer record from topic" + record.topic() + ", partition " + record.partition() + ", offset "
+                            + + record.offset());
+
                     //Add context information
                     String solaceMessage = ContextPropagator.addContext(kafkaMessage);
 
