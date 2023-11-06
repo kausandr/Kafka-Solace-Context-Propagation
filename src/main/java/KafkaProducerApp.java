@@ -21,7 +21,7 @@ public class KafkaProducerApp {
                 })
         );
 
-        String kafkaBootstrapServers = "tcp://localhost:9092";
+        String kafkaBootstrapServers = "tcp://kafka-ps:9092";
         //192.168.1.9:9092 to run in local
         String kafkaTopic = "kafkatest";
 
