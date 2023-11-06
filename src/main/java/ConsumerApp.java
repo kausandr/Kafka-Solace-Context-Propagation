@@ -16,8 +16,10 @@ public class ConsumerApp {
 
         String kafkaTopic = "kafkatest";
         String solaceTopic = "solacetest";
-        String kafkaBootstrapServers = "tcp://kafka-ps:9092";
-        String solaceHost = "tcp://solace-ps:55555";
+        String kafkaBootstrapServers = "tcp://localhost:9092";
+                //"tcp://kafka-ps:9092";
+        String solaceHost = "tcp://localhost:55555";
+                //"tcp://solace-ps:55555";
         String solaceVPN = "default";
         String solaceUsername = "admin";  //username and password for solace UI dashboard
         String solacePassword = "admin";
@@ -64,7 +66,7 @@ public class ConsumerApp {
                     String kafkaMessage = record.value();
 
                     System.out.println("<<=== Consumer record from topic" + record.topic() + ", partition " + record.partition() + ", offset "
-                            + + record.offset());
+                            + + record.offset() +" message:" + ContextPropagator.addContext(kafkaMessage));
 
                     //Add context information
                     String solaceMessage = ContextPropagator.addContext(kafkaMessage);

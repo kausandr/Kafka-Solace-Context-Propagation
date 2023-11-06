@@ -21,14 +21,15 @@ public class KafkaProducerApp {
                 })
         );
 
-        String kafkaBootstrapServers = "tcp://kafka-ps:9092";
+        String kafkaBootstrapServers = "tcp://localhost:9092";
+        //192.168.1.9:9092 to run in local
         String kafkaTopic = "kafkatest";
 
         Properties producerProp = new Properties();
         producerProp.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
         producerProp.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProp.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-//        producerProp.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, TracingProducerInterceptor.class.getName());
+        producerProp.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, TracingProducerInterceptor.class.getName());
 
         Producer<String, String> producer = new KafkaProducer<>(producerProp);
         KafkaTelemetry telemetry = KafkaTelemetry.create(GlobalOpenTelemetry.get());
