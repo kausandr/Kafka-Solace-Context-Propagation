@@ -14,4 +14,7 @@ COPY target/kafka-solace-context-propagation-1.0-SNAPSHOT.jar /app/kafka-solace-
 # # Specify the main class
 # CMD ["java", "-cp", "/app:/app/lib/*", "ConsumerApp"]
 
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar .
+ENV JAVA_TOOL_OPTIONS "-javaagent:./opentelemetry-javaagent.jar"
+
 CMD ["java", "-cp", "/app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar", "ConsumerApp"]

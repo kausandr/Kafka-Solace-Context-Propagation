@@ -116,6 +116,11 @@ services:
 
   app-cons:
     build: .
+    environment:
+      - OTEL_SERVICE_NAME=app-consumer
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_TRACES_EXPORTER=jaeger
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger-all-in-one:14250
     entrypoint:
       - sh
       - -c
@@ -131,6 +136,12 @@ services:
 
   app-prod:
     build: .
+    environment:
+      - OTEL_SERVICE_NAME=app-producer
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=jaeger
+      - OTEL_PROPAGATORS=jaeger
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger-all-in-one:14250
     entrypoint:
       - sh
       - -c
