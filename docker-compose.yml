@@ -119,8 +119,9 @@ services:
     environment:
       - OTEL_SERVICE_NAME=app-consumer
       - OTEL_METRICS_EXPORTER=none
-      - OTEL_TRACES_EXPORTER=jaeger
-      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger-all-in-one:14250
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_PROPAGATORS=jaeger
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
       - -c
@@ -141,7 +142,7 @@ services:
       - OTEL_METRICS_EXPORTER=otlp
       - OTEL_TRACES_EXPORTER=jaeger
       - OTEL_PROPAGATORS=jaeger
-      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger-all-in-one:14250
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
       - -c
