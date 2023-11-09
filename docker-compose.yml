@@ -2,8 +2,6 @@ version: '3'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
-    expose:
-      - "2181"
     networks:
       - solace_msg_net
     environment:
@@ -12,24 +10,22 @@ services:
     ports:
       - 22181:2181
     healthcheck:
-      #test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       test: 'nc -z localhost 2181'
       interval: 30s
       timeout: 10s
       retries: 3
+#      start_period: 10s
 
   kafka:
     container_name: kafka-ps
     image: confluentinc/cp-kafka:latest
-    expose:
-      - "9092"
     networks:
       - solace_msg_net
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - 9092:9092
-      #- 29092:29092
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -40,11 +36,11 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     healthcheck:
-      #test: [ "CMD", "nc", "-z", "localhost", "29092" ]
       test: 'nc -z localhost 9092'
       interval: 30s
       timeout: 10s
       retries: 3
+#      start_period: 10s
 
   # Jaeger
   jaeger-all-in-one:
@@ -84,7 +80,6 @@ services:
   solace:
     container_name: solace-ps
     image: $PUBSUB_IMAGE
-#    hostname: $PUBSUB_HOSTNAME
     networks:
       - solace_msg_net
     env_file:
@@ -108,25 +103,24 @@ services:
         soft: 2448
         hard: 42192
     healthcheck:
-      #test: [ "CMD", "nc", "-z", "localhost", "55555" ]
       test: 'curl -f http://localhost:8080'
       interval: 30s
       timeout: 10s
       retries: 3
+#      start_period: 10s
 
   app-cons:
     build: .
     environment:
       - OTEL_SERVICE_NAME=app-consumer
-      - OTEL_METRICS_EXPORTER=none
+      - OTEL_METRICS_EXPORTER=otlp
       - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_PROPAGATORS=jaeger
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
       - -c
       - |
-       java -cp /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar ConsumerApp
+        java -cp /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar ConsumerApp
     networks:
       - solace_msg_net
     depends_on:
@@ -140,21 +134,20 @@ services:
     environment:
       - OTEL_SERVICE_NAME=app-producer
       - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_TRACES_EXPORTER=jaeger
-      - OTEL_PROPAGATORS=jaeger
+      - OTEL_TRACES_EXPORTER=otlp
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
       - -c
       - |
-       java -cp /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar KafkaProducerApp
+        java -cp /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar KafkaProducerApp
     networks:
       - solace_msg_net
     depends_on:
-       kafka:
-          condition: service_healthy
-       solace:
-          condition: service_healthy
+      kafka:
+        condition: service_healthy
+      solace:
+        condition: service_healthy
 #    healthcheck:
 #      test: [ "CMD", "nc", "-z", "kafka", "29092" ]
 #      interval: 30s
@@ -163,6 +156,3 @@ services:
 
 networks:
   solace_msg_net:
-#    name: solace_msg_net
-#    external: false
-#    driver: bridge

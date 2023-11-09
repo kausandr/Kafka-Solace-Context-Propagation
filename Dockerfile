@@ -1,8 +1,5 @@
 FROM openjdk:8-jre-alpine
 
-# # Setting the working directory in the container
-# WORKDIR /app
-
 COPY target/kafka-solace-context-propagation-1.0-SNAPSHOT.jar /app/kafka-solace-context-propagation-1.0-SNAPSHOT.jar
 
 # # Coping dependencies into a dedicated directory in the container

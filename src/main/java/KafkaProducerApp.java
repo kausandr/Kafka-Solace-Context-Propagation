@@ -43,10 +43,10 @@ public class KafkaProducerApp {
                 tracingProducer.send(record, new Callback() {
                     @Override
                     public void onCompletion(RecordMetadata metadata, Exception exception) {
-                        if (exception == null) {
-                            System.out.println("Producer record to topic" + metadata.topic() + ", partition " + metadata.partition() + ", offset "
-                                    + metadata.offset());
-                        } else {
+                        if(exception == null){
+                            System.out.println("===>> Producer record to topic" + metadata.topic() + ", partition " + metadata.partition() + ", offset "
+                            + metadata.offset());
+                        }else{
                             System.err.println("XXXXX Error producing record: " + exception.getMessage());
                         }
                     }
@@ -58,6 +58,6 @@ public class KafkaProducerApp {
             }
         }finally {
                 producer.close();
-            }
+        }
     }
 }
