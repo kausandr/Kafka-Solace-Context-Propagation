@@ -45,15 +45,25 @@ public class ConsumerApp {
             JCSMPSession solaceSession = JCSMPFactory.onlyInstance().createSession(solaceProps);
             solaceSession.connect();
 
-            solaceProducer = solaceSession.getMessageProducer(new JCSMPStreamingPublishEventHandler() {
+            solaceProducer = solaceSession.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
                 @Override
                 public void responseReceived(String messageId) {
                     logger.info("Solace message sent successfully with ID: {}", messageId);
                 }
 
                 @Override
+                public void responseReceivedEx(Object key) {
+                    logger.info("Solace message sent successfully with Key: {}", key);
+                }
+
+                @Override
                 public void handleError(String messageId, JCSMPException e, long timestamp) {
                     logger.error("Error sending Solace message with ID {}: {}", messageId, e);
+                }
+
+                @Override
+                public void handleErrorEx(Object key, JCSMPException e, long timestamp) {
+                    logger.error("Error sending Solace message with Key {}: {}", key, e);
                 }
             });
 
@@ -64,7 +74,7 @@ public class ConsumerApp {
                     String kafkaMessage = record.value();
 
                     System.out.println("<<=== Consumer record from topic" + record.topic() + ", partition " + record.partition() + ", offset "
-                            + + record.offset() +" message:" + ContextPropagator.addContext(kafkaMessage));
+                            + record.offset() +" message:" + ContextPropagator.addContext(kafkaMessage));
 
                     //Add context information
                     String solaceMessage = ContextPropagator.addContext(kafkaMessage);

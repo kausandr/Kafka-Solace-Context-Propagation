@@ -24,7 +24,9 @@ exporters:
     loglevel: "info"
 
   otlp:
-    endpoint: otel-collector:4317
+    endpoint: jaeger-all-in-one:4317
+    tls:
+      insecure: true
 
 processors:
   memory_limiter:
@@ -52,4 +54,4 @@ service:
        exporters: [otlp]
     metrics:
       receivers: [otlp]
-      exporters: [logging]
+      exporters: [otlp]
