@@ -28,6 +28,9 @@ exporters:
     tls:
       insecure: true
 
+  prometheus:
+    endpoint: otel-collector:8889
+
 processors:
   memory_limiter:
     check_interval: 1s
@@ -51,7 +54,8 @@ service:
     traces:
        receivers: [solace, kafka, otlp]
        processors: [batch, memory_limiter]
-       exporters: [otlp]
+       exporters: [otlp, logging]
     metrics:
-      receivers: [otlp]
-      exporters: [otlp]
+      receivers: [kafka, otlp]
+      processors: [batch, memory_limiter]
+      exporters: [otlp, prometheus]

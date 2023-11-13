@@ -79,7 +79,7 @@ services:
 
   solace:
     container_name: solace-ps
-    image: $PUBSUB_IMAGE
+    image: ${PUBSUB_IMAGE}
     networks:
       - solace_msg_net
     env_file:
@@ -113,8 +113,8 @@ services:
     build: .
     environment:
       - OTEL_SERVICE_NAME=app-consumer
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=prometheus
+      - OTEL_TRACES_EXPORTER=jaeger
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
@@ -133,8 +133,8 @@ services:
     build: .
     environment:
       - OTEL_SERVICE_NAME=app-producer
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=prometheus
+      - OTEL_TRACES_EXPORTER=jaeger
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
