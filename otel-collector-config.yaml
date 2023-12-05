@@ -52,9 +52,9 @@ service:
       level: "debug"
   pipelines:
     traces:
-       receivers: [solace, kafka, otlp]
-       processors: [batch, memory_limiter]
-       exporters: [otlp, logging]
+      receivers: [kafka, otlp]  #[solace, kafka, otlp]
+      processors: [batch, memory_limiter]
+      exporters: [otlp, logging]
     metrics:
       receivers: [kafka, otlp]
       processors: [batch, memory_limiter]

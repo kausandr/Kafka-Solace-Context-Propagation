@@ -76,7 +76,6 @@ services:
       - "55679:55679" # zpages extension
     depends_on:
       - jaeger-all-in-one
-
   solace:
     container_name: solace-ps
     image: ${PUBSUB_IMAGE}
@@ -113,8 +112,8 @@ services:
     build: .
     environment:
       - OTEL_SERVICE_NAME=app-consumer
-      - OTEL_METRICS_EXPORTER=prometheus
-      - OTEL_TRACES_EXPORTER=jaeger
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=otlp
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
@@ -133,8 +132,8 @@ services:
     build: .
     environment:
       - OTEL_SERVICE_NAME=app-producer
-      - OTEL_METRICS_EXPORTER=prometheus
-      - OTEL_TRACES_EXPORTER=jaeger
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=otlp
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     entrypoint:
       - sh
