@@ -58,4 +58,4 @@ service:
     metrics:
       receivers: [kafka, otlp]
       processors: [batch, memory_limiter]
-      exporters: [otlp, prometheus]
+      exporters: [prometheus]
